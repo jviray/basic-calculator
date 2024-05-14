@@ -6,6 +6,8 @@
  * - Check other solutions
  * - Fix divide by 0
  * - Deploy
+ * - Refactor
+ * - Review decimals
  */
 
 // Must use normal function because of `this`
@@ -20,6 +22,11 @@ const handleInput = (current, input) => {
   return !current || current === '0' ? input : current + input;
 };
 
+const handleDecimal = (current) => {
+  // Append to 0 or append '.' to current value
+  return !current || current === '0' ? '0.' : current + '.';
+};
+
 const clearState = () => {
   firstValue = null;
   tempFirstValue = null;
@@ -29,7 +36,7 @@ const clearState = () => {
 };
 
 const setDisplay = (number) => {
-  display.value = Number(number);
+  display.value = number.toString();
 };
 
 const calculate = () => {
@@ -110,24 +117,21 @@ for (const number of [...numbers]) {
   });
 }
 
-/**
- * Handle decimal
- * - Trick: Append to decimal to 0; don't allow multiple decimals
- */
+// Handle decimal
 onClick.bind(decimal)((e) => {
-  if (!operation && !firstValue.includes('.')) {
-    firstValue = !firstValue ? '0.' : firstValue + '.';
-    display.value = firstValue; // update
-  } else if (operation && !secondValue.includes('.')) {
-    secondValue = !secondValue ? '0.' : secondValue + '.';
-    display.value = secondValue; // update
+  // Don't allow multiple decimals
+  if (display.value.includes('.')) return;
+
+  if (!firstValue) {
+    tempFirstValue = handleDecimal(tempFirstValue);
+    setDisplay(tempFirstValue);
+  } else {
+    tempSecondValue = handleDecimal(tempSecondValue);
+    setDisplay(tempSecondValue);
   }
 });
 
-/**
- * Handle operators
- * - Should assign firstValue?
- */
+// Handle operators
 for (const operator of operators) {
   onClick.bind(operator)((e) => {
     // This enables chaining on an operation to the current display.
@@ -186,9 +190,7 @@ for (const operator of operators) {
   });
 }
 
-/**
- * Handle equals:
- */
+// Handle equal
 onClick.bind(equals)(() => {
   calculate();
 });
