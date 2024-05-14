@@ -3,11 +3,11 @@
  * - Allow key press inputs (not just clicks)
  * - Limit input
  * - Add hover states
- * - Check other solutions
+ * - Check other solutions online
  * - Fix divide by 0
  * - Deploy
  * - Refactor
- * - Review decimals
+ * - Add media queries
  */
 
 // Must use normal function because of `this`
@@ -47,24 +47,23 @@ const calculate = () => {
     divide: '/',
   };
 
+  /**
+   * After every calculation, `firstValue` gets cleared out.
+   * Setting `display.value` here when `firstValue` is empty,
+   * allows calculations to be done by pressing equals sign
+   * repeatedly.
+   */
   if (!firstValue) {
     firstValue = display.value;
   }
 
-  // Any other times to fill in when value non existent
-  // - 2 +
-  // - + 2
-
-  // Insert secondValue w/ tempSecondValue
-  // But we only want to do that when we have value in tempSecondValue
-  // i.e. - We don't want to keep re-setting it
-  if (tempSecondValue) {
+  /**
+   * Set `secondvalue`, but only when tempSecondValue is present
+   * or no secondValue
+   */
+  if (tempSecondValue || !secondValue) {
     secondValue = display.value;
     tempSecondValue = null;
-  }
-
-  if (!secondValue) {
-    secondValue = display.value;
   }
 
   if (operation) {
@@ -74,7 +73,7 @@ const calculate = () => {
 
     setDisplay(evaluate());
 
-    // Clear out firstValue
+    // Clear out firstValue to trigger starting a new value
     firstValue = null;
   }
 };
@@ -94,18 +93,10 @@ let secondValue = null;
 let tempSecondValue = null;
 let operation = null;
 
-/**
- * Handle numbers
- * - Trick: Knowing when to start new value
- */
+// Handle numbers
 for (const number of [...numbers]) {
   onClick.bind(number)((e) => {
     const input = e.target.value;
-
-    // Options: for triggering new value
-    // - Can use temp placeholders
-    // But when do we clear out
-    // Clear out after setting the real values
 
     if (!firstValue) {
       tempFirstValue = handleInput(tempFirstValue, input);
@@ -134,52 +125,11 @@ onClick.bind(decimal)((e) => {
 // Handle operators
 for (const operator of operators) {
   onClick.bind(operator)((e) => {
-    // This enables chaining on an operation to the current display.
-    // It assumes that after a calculation is executed, the state is cleared
-    // out. So for example, if a simple operation is done, we clear state
-    // so that when new numbers are pressed, the calculator starts a new number
-    // rather than appending numbers to the current display.
-    //
-    // But what if we don't need to clear out state when calculating.
-    // Instead, reassign firstValue to result and also show result on display.
-    // Clear out secondValue.
-    //
-    // NVM, looks like the apple calculator doesn't re-assign the first value when
-    // calculating either. In fact, it retains the secondValue, and even the operation.
-    // So far from 1 + 2 = example it looks likes it just calculates and displays while keep
-    // everything else. When typing a new number it replaces the first number. But
-    // how does it know to do that?
-    //
-    //
-    // if (!firstValue) {
-    //   firstValue = display.value;
-    // }
-    //
-    // Pressing operator for sure indicates when to move on to second number.
-    // Nvm - based on fristValue because operation is not deleted or cleared out so still there after calc.
-    // Pressing equal to calculate only requires an operation!
-    // If no number is present then 0 is used.
-    // Shows calculation result on display.
-    //
-    // IMPORTANT: even after calc, all state remains the same!
-    // With current handling of inputs, typing a new number will append a digit to the
-    // current value. So we know for sure that area needs to change.
-    //
-    // Possible solution: Instead of updating first and second value we only change display when handling input
-    // Then when operation is pressed, that's when we: save display as firstValue and save operation.
-    // Then when equal is pressed, we save display as secondValue.
-    // Calculator will look at state to perform calc and then show result on display.
-    // Everything is still saved (or maybe firstValue is deleted?)
-    //
-    // If first value is deleted then when we press operation we still dave display as first value!!!!
-
-    // ....
-
-    // Only run calc if both first AND second values exist
-    // This is incorret, need to change.
-    // Current wrong behavior: When we run a simple calc,
-    // pressing an operator once wont run calc. However,
-    // it does re-set firstValue using the display.
+    /**
+     * Only run calculation if both below are present.
+     * This enables chaining operations, while allowing
+     * operators to be switched out without triggering a calculation
+     */
     if (firstValue && tempSecondValue) {
       calculate();
     }
